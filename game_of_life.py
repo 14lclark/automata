@@ -4,7 +4,7 @@ from src.automata import Automata
 initial = {(0,0): 1, (0,1): 1, (1,1): 1}
 
 class GameOfLife(Automata):
-    def __init__(self, initial_state, max_storage) -> None:
+    def __init__(self, initial_state = {}, max_storage = -1) -> None:
         super().__init__(initial_state, max_storage)
     
     def _neighbors(self, cell: tuple[int, int]):
@@ -47,6 +47,12 @@ def main():
     # Initialize with a glider.
     gol = GameOfLife({(0,0): 1, (0,1): 1, (0,2): 1, (-1,2): 1, (-2,1): 1},
                      max_storage = 0)
+    
+    # Initialize with glider gun.
+    
+    # gol = GameOfLife()
+    # initial = gol.state_input_from_file("gol_input.txt", Automata.FileFormat.RLE)
+    # gol.universe.change_initial_state(initial)
     
     vis = Vis2DTerminal()
     while True:

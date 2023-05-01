@@ -1,10 +1,11 @@
 from src.universe import Universe
+from enum import Enum, auto, unique
 
 class Automata:
-    '''Base class for a cellular automata.'''
+    '''Base class for cellular automata.'''
     def __init__(self, initial_state: dict = {}, max_storage: int = -1) -> None:
         self.universe = Universe(initial_state, max_storage)
-    
+        
     def update(self):
         raise NotImplementedError()
     
@@ -12,4 +13,86 @@ class Automata:
         print(self.universe.current_state)
         return self.view_count
     
+    def state_input_from_file(self, file_name: str, format) -> dict:
+        '''
+        The file file_name should be a text file. 
+        The format is an element of the Automata.FileFormat enum.
+        '''
+        with open(file_name) as file:
+            if format == self.FileFormat.BIN:
+                return self._binary_state_input(file)
+            elif format == self.FileFormat.RLE:
+                return self._rle_state_input(file)
+            elif format == self.FileFormat.CRD:
+                return self._coords_state_input(file)
+            
+    def _binary_state_input(self, file):
+        y = 0
+        state = {}
+        for line in file:
+            for x, ch in enumerate(line.rstrip()):
+                if ch is not '0':
+                    state[(x,y)] = int(ch)
+            y += 1
+        return state
     
+    def _rle_state_input(self, file):
+        def to_int(x): 
+            if x == "": return 1 
+            return int(x)
+
+        state = {}
+        y = 0
+        x = 0          
+        
+        digits = [str(i) for i in range(10)]
+        cells = ["b","o"]
+        allowed = digits + cells      
+        
+        def parse_row(row):
+            current_num = ""
+            for i, c in enumerate(row):
+                if c == "!":
+                    return True
+                if c not in allowed:
+                    err = f"parsing error: \"{c}\" is not in the list of allowed characters"
+                    raise ValueError(err)
+                if c in digits:
+                    current_num += c
+                if c in cells:
+                    if c == "b":
+                        x += to_int(current_num)
+                        current_num = ""
+                    if c == "o":
+                        for _ in range(int(current_num)):
+                            state[(x,y)] = 1
+                            x += 1
+                        current_num = ""
+
+        for line in file:
+            # ignore header info for now
+            if line[0] not in allowed:
+                continue
+            rows = line.rstrip().split('$')
+            for row in rows:
+                if parse_row(row):
+                    return state
+                    
+            
+                
+            
+    
+    def _coords_state_input(file):
+        state = {}
+        for line in file:
+            coord, val = line.rstrip().split(":")
+            coord = coord[1:-1].split(',')
+            coord = [int(elt) for elt in coord]
+            state[tuple(coord)] = int(val)
+        return state
+    
+    @unique
+    class FileFormat(Enum):
+        BIN = auto() # 1 for alive 0 for dead
+        RLE = auto() # Run Length Encoded format
+        CRD = auto() # coordinates of living cells, 1 per line eg (1,3):1
