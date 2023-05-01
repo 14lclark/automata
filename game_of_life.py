@@ -45,14 +45,14 @@ def main():
     import curses
     
     # Initialize with a glider.
-    gol = GameOfLife({(0,0): 1, (0,1): 1, (0,2): 1, (-1,2): 1, (-2,1): 1},
-                     max_storage = 0)
+    # gol = GameOfLife({(0,0): 1, (0,1): 1, (0,2): 1, (-1,2): 1, (-2,1): 1},
+    #                  max_storage = 0)
     
     # Initialize with glider gun.
     
-    # gol = GameOfLife()
-    # initial = gol.state_input_from_file("gol_input.txt", Automata.FileFormat.RLE)
-    # gol.universe.change_initial_state(initial)
+    gol = GameOfLife()
+    initial = gol.state_input_from_file("gol_input.txt", Automata.FileFormat.RLE)
+    gol.universe.change_initial_state(initial)
     
     vis = Vis2DTerminal()
     while True:

@@ -31,53 +31,64 @@ class Automata:
         state = {}
         for line in file:
             for x, ch in enumerate(line.rstrip()):
-                if ch is not '0':
+                if ch != '0':
                     state[(x,y)] = int(ch)
             y += 1
         return state
     
     def _rle_state_input(self, file):
-        def to_int(x): 
-            if x == "": return 1 
-            return int(x)
+        def to_int(a): 
+            if a == "": return 1 
+            return int(a)
 
         state = {}
-        y = 0
-        x = 0          
+        self.y = 5
+        self.x = 10    
         
         digits = [str(i) for i in range(10)]
-        cells = ["b","o"]
+        cells = ["b","o", "$"]
         allowed = digits + cells      
         
-        def parse_row(row):
+        def parse(rle):
             current_num = ""
-            for i, c in enumerate(row):
+            for c in rle:
                 if c == "!":
                     return True
-                if c not in allowed:
+                elif c == "$":
+                    for _ in range(to_int(current_num)):
+                        self.y += 1
+                    self.x = 10
+                    with open("log.txt","a") as fi:
+                        fi.write(current_num + "\n")
+                    current_num = ""
+                    
+                elif c not in allowed:
                     err = f"parsing error: \"{c}\" is not in the list of allowed characters"
                     raise ValueError(err)
-                if c in digits:
+                elif c in digits:
                     current_num += c
-                if c in cells:
+                elif c in cells:
                     if c == "b":
-                        x += to_int(current_num)
+                        self.x += to_int(current_num)
                         current_num = ""
-                    if c == "o":
-                        for _ in range(int(current_num)):
-                            state[(x,y)] = 1
-                            x += 1
+                    elif c == "o":
+                        for _ in range(to_int(current_num)):
+                            state[(self.x,self.y)] = 1
+                            self.x += 1
                         current_num = ""
 
+        rle = ""
         for line in file:
             # ignore header info for now
             if line[0] not in allowed:
                 continue
-            rows = line.rstrip().split('$')
-            for row in rows:
-                if parse_row(row):
-                    return state
-                    
+            rle += line.rstrip()
+            
+        if parse(rle):
+            return state
+        else:
+            raise EOFError("Didn't find RLE ending. (Missing a \'!\'?)")
+                
             
                 
             
