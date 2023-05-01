@@ -39,7 +39,8 @@ class Vis2DTerminal(Visualizer):
         self.pause = True
         self.coord_offset = (0,0)
         self.screen_dims = self.stdscr.getmaxyx()
-        self.speed = 400 # render speed (number of frames rendered)
+        self.default_speed = 512
+        self.speed = self.default_speed # render speed (number of frames rendered)
         
     def update_state(self, new_state: dict) -> None:
         self.state = new_state
@@ -54,8 +55,14 @@ class Vis2DTerminal(Visualizer):
             raise InterruptedError
         def toggle_pause(*args, **kwargs):
             self.pause = not self.pause
-        def change_speed(val, *args, **kwargs):
-            self.speed += val
+        def set_speed(val, *args, **kwargs):
+            self.speed = int(val+1)
+            if self.speed < 10:
+                self.speed = 10
+            elif self.speed > 5000:
+                self.speed = 7000
+
+            
         def move(tup, *args, **kwargs):
             self._move_window(tup[0],tup[1])
             
@@ -75,53 +82,53 @@ class Vis2DTerminal(Visualizer):
             ord('1'):         [move, (-1,1)],
             ord('q'):         [quit, None],
             ord('p'):         [toggle_pause, None],
-            ord('+'):         [change_speed, (-10)], # fewer frames per step
-            ord('-'):         [change_speed, (10)],  # more frames per step
-            ord('='):         [change_speed, (100-self.speed)]
+            ord('+'):         [set_speed, (self.speed/1.1)], # fewer frames per step
+            ord('-'):         [set_speed, (self.speed*1.1)],  # more frames per step
+            ord('='):         [set_speed, (self.default_speed)]
             }      
         
         if c in handle_dict:
             func, arg = handle_dict[c]
             func(arg)
         return
-            
-    def window_render(self):
-       
+    def _render(self):
         rows, cols = self.screen_dims
         coords = list(self.state.keys())
 
         x_range = cols - 1
         y_range = rows - 1
-       
-        def _render(): 
-            
-            x_offset, y_offset = self.coord_offset
-            x_min, y_min = x_offset,           y_offset
-            x_max, y_max = x_offset + x_range, y_offset + y_range
-            grid = [[' ' for _ in range(x_range + 1)]
-                            for _ in range(y_range + 1)]
+        x_offset, y_offset = self.coord_offset
+        x_min, y_min = x_offset,           y_offset
+        x_max, y_max = x_offset + x_range, y_offset + y_range
+        
+        grid = [[' ' for _ in range(x_range + 1)]
+                        for _ in range(y_range + 1)]
 
-            for x, y in coords:
-                if (x_min <= x <= x_max) and (y_min <= y <= y_max):
-                    grid[y - y_min][x - x_min] = '#'   
-                    
-            for y in range(y_range):
-                self.stdscr.addstr(y,0,''.join(grid[y]))
-            self.stdscr.insstr(y_range,0,''.join(grid[y_range]))
-            
-            self.stdscr.addstr(0,0,f"Press q to exit, +/- to change speed.      x-range: [{x_min}, {x_max}] ")
-            self.stdscr.addstr(1,0,f"Press p to (un)pause, = for default speed. y-range: [{y_min}, {y_max}] ")
-            self.stdscr.refresh()
-            # curses.delay_output(self.speed)
-            for _ in range(10):
-                self._handle_input(self.stdscr.getch())
-            
+        for x, y in coords:
+            if (x_min <= x <= x_max) and (y_min <= y <= y_max):
+                grid[y - y_min][x - x_min] = '#'   
+                
+        for y in range(y_range):
+            self.stdscr.addstr(y,0,''.join(grid[y]))
+        self.stdscr.insstr(y_range,0,''.join(grid[y_range]))
+        
+        self.stdscr.addstr(0,0,f"Press q to exit, +/- to change speed.      x-range: [{x_min}, {x_max}] ")
+        self.stdscr.addstr(1,0,f"Press p to (un)pause, = for default speed. y-range: [{y_min}, {y_max}] ")
+        self.stdscr.refresh()
+    
+    def _catch_input(self, num_to_catch: int):
+        for _ in range(num_to_catch):
+            self._handle_input(self.stdscr.getch())
+    
+    def window_render(self):
         while not self.pause:
             for _ in range(self.speed):
-                _render()
+                self._render()
+                self._catch_input(10)
             break
         while self.pause:
-            _render()
+            self._render()
+            self._catch_input(10)
             
     def shutdown(self):
         '''

@@ -2,11 +2,19 @@ class Universe:
     def __init__(self,
                  state: dict = {},
                  max_storage: int = -1) -> None:
-        self.current_state = state
-        self.queue = {}
         self.max_storage = max_storage
+        self.change_initial_state(state)
+
+    def change_initial_state(self, state):
+        '''
+        Change the initial state. Note that this will 
+        restart the simulation with the given state. 
+        '''
+        self.current_state = state
         self.previous = []
-    
+        self.queue = {}
+        self.generation = 0
+        
     def add_to_update_queue(self,
                             cell: tuple[int, ...], 
                             new_value: int) -> None:
@@ -26,11 +34,11 @@ class Universe:
                 for cell in cells if cell in self.current_state}
                 
     def update_current_state(self):
-        '''Updates the current state to be the queue'''
+        '''Updates the current state to be the queue.'''
         self.previous.append(self.current_state)
         self.current_state = self.queue
         self.queue = {}
-        
+        self.generation += 1
         if self.max_storage == -1:
             return 
         if len(self.previous) > self.max_storage: 

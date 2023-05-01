@@ -1,0 +1,5 @@
+x = 50, y = 40, rule = B3/S23
+5$25bobo$24bo2bo$14bo8b2o10b2o$13bobo5b2o3bo8b2o$b2o10b2obo6b2o5b2o$b
+2o10b2ob2o6bo2bo4bo$13b2obo8bobo$13bobo$14bo9bo$25bo$23b3o6$32bo$30bo
+bo$31b2o5$39bo$40bo$38b3o5$45b2o$45bobo$47bo$47b2o!
+
