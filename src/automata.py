@@ -15,7 +15,7 @@ class Automata:
     
     def state_input_from_file(self, file_name: str, format) -> dict:
         '''
-        The file file_name should be a text file. 
+        The file file_name should be a text file, possibly with a .rle extension. 
         The format is an element of the Automata.FileFormat enum.
         '''
         with open(file_name) as file:
@@ -46,7 +46,7 @@ class Automata:
         self.x = 10    
         
         digits = [str(i) for i in range(10)]
-        cells = ["b","o", "$"]
+        cells = ["b","o","$"]
         allowed = digits + cells      
         
         def parse(rle):
@@ -87,10 +87,6 @@ class Automata:
         else:
             raise EOFError("Didn't find RLE ending. (Missing a \'!\'?)")
                 
-            
-                
-            
-    
     def _coords_state_input(file):
         state = {}
         for line in file:
