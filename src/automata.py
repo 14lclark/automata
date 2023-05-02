@@ -58,8 +58,6 @@ class Automata:
                     for _ in range(to_int(current_num)):
                         self.y += 1
                     self.x = 10
-                    with open("log.txt","a") as fi:
-                        fi.write(current_num + "\n")
                     current_num = ""
                     
                 elif c not in allowed:
